@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_chat/models/chat_model.dart';
-import 'package:firebase_chat/models/message_model.dart';
-import 'package:firebase_chat/models/user_data.dart';
-import 'package:firebase_chat/services/database_service.dart';
-import 'package:firebase_chat/services/storage_service.dart';
-import 'package:firebase_chat/utilities/constants.dart';
-import 'package:firebase_chat/widgets/message_bubble.dart';
+import 'package:flutter_chat/models/chat_model.dart';
+import 'package:flutter_chat/models/message_model.dart';
+import 'package:flutter_chat/models/user_data.dart';
+import 'package:flutter_chat/services/database_service.dart';
+import 'package:flutter_chat/services/storage_service.dart';
+import 'package:flutter_chat/utilities/constants.dart';
+import 'package:flutter_chat/widgets/message_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 class ChatScreen extends StatefulWidget {
   final Chat chat;
 
-  const ChatScreen(this.chat);
+  const ChatScreen(this.chat, {Key? key}) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -24,7 +24,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   bool _isComposingMessage = false;
-  DatabaseService _databaseService;
+  late DatabaseService _databaseService;
 
   @override
   void initState() {
@@ -46,14 +46,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Theme.of(context).primaryColor,
               ),
               onPressed: () async {
-                File imageFile = await ImagePicker.pickImage(
+                final ImagePicker _picker = ImagePicker();
+                XFile? image = await _picker.pickImage(
                   source: ImageSource.gallery,
                 );
-                if (imageFile != null) {
+                if (image != null) {
                   String imageUrl = await Provider.of<StorageService>(
                     context,
                     listen: false,
-                  ).uploadMessageImage(imageFile);
+                  ).uploadMessageImage(File(image.path));
                   _sendMessage(null, imageUrl);
                 }
               },
@@ -68,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   () => _isComposingMessage = messageText.isNotEmpty,
                 );
               },
-              decoration: InputDecoration.collapsed(
+              decoration: const InputDecoration.collapsed(
                 hintText: 'Send a message',
               ),
             ),
@@ -93,7 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _sendMessage(String text, String imageUrl) async {
+  _sendMessage(String? text, String? imageUrl) async {
     if ((text != null && text.trim().isNotEmpty) || imageUrl != null) {
       if (imageUrl == null) {
         // Text Message
@@ -113,14 +114,14 @@ class _ChatScreenState extends State<ChatScreen> {
   _buildMessagesStream() {
     return StreamBuilder(
       stream: chatsRef
-          .document(widget.chat.id)
+          .doc(widget.chat.id)
           .collection('messages')
           .orderBy('timestamp', descending: true)
           .limit(20)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (!snapshot.hasData) {
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         }
         return Expanded(
           child: GestureDetector(
@@ -130,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 horizontal: 10.0,
                 vertical: 20.0,
               ),
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               reverse: true,
               children: _buildMessageBubbles(snapshot),
             ),
@@ -140,14 +141,13 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  List<MessageBubble> _buildMessageBubbles(
-      AsyncSnapshot<QuerySnapshot> messages) {
+  List<MessageBubble> _buildMessageBubbles(AsyncSnapshot<dynamic> messages) {
     List<MessageBubble> messageBubbles = [];
-    messages.data.documents.forEach((doc) {
+    for (var doc in messages.data!.docs) {
       Message message = Message.fromDoc(doc);
       MessageBubble messageBubble = MessageBubble(widget.chat, message);
       messageBubbles.add(messageBubble);
-    });
+    }
     return messageBubbles;
   }
 
@@ -160,7 +160,7 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.chat.name),
+          title: Text(widget.chat.name!),
         ),
         body: SafeArea(
           child: Column(
@@ -168,7 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               _buildMessagesStream(),
-              Divider(height: 1.0),
+              const Divider(height: 1.0),
               _buildMessageTF(),
             ],
           ),

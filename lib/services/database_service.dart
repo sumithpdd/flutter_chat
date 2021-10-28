@@ -1,32 +1,31 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_chat/models/chat_model.dart';
-import 'package:firebase_chat/models/message_model.dart';
-import 'package:firebase_chat/models/user_data.dart';
-import 'package:firebase_chat/models/user_model.dart';
-import 'package:firebase_chat/services/storage_service.dart';
-import 'package:firebase_chat/utilities/constants.dart';
+import 'package:flutter_chat/models/chat_model.dart';
+import 'package:flutter_chat/models/message_model.dart';
+import 'package:flutter_chat/models/user_data.dart';
+import 'package:flutter_chat/models/app_user_model.dart';
+import 'package:flutter_chat/services/storage_service.dart';
+import 'package:flutter_chat/utilities/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class DatabaseService {
-  Future<User> getUser(String userId) async {
-    DocumentSnapshot userDoc = await usersRef.document(userId).get();
-    return User.fromDoc(userDoc);
+  Future<AppUser> getUser(String userId) async {
+    DocumentSnapshot userDoc = await usersRef.doc(userId).get();
+    return AppUser.fromDoc(userDoc);
   }
 
-  Future<List<User>> searchUsers(String currentUserId, String name) async {
-    QuerySnapshot usersSnap = await usersRef
-        .where('name', isGreaterThanOrEqualTo: name)
-        .getDocuments();
-    List<User> users = [];
-    usersSnap.documents.forEach((doc) {
-      User user = User.fromDoc(doc);
+  Future<List<AppUser>> searchUsers(String currentUserId, String name) async {
+    QuerySnapshot usersSnap =
+        await usersRef.where('name', isGreaterThanOrEqualTo: name).get();
+    List<AppUser> users = [];
+    for (var doc in usersSnap.docs) {
+      AppUser user = AppUser.fromDoc(doc);
       if (user.id != currentUserId) {
         users.add(user);
       }
-    });
+    }
     return users;
   }
 
@@ -45,7 +44,7 @@ class DatabaseService {
     for (String userId in users) {
       memberIds.add(userId);
 
-      User user = await getUser(userId);
+      AppUser user = await getUser(userId);
       Map<String, dynamic> userMap = {
         'name': user.name,
         'email': user.email,
@@ -69,7 +68,7 @@ class DatabaseService {
   }
 
   void sendChatMessage(Chat chat, Message message) {
-    chatsRef.document(chat.id).collection('messages').add({
+    chatsRef.doc(chat.id).collection('messages').add({
       'senderId': message.senderId,
       'text': message.text,
       'imageUrl': message.imageUrl,
@@ -78,9 +77,9 @@ class DatabaseService {
   }
 
   void setChatRead(BuildContext context, Chat chat, bool read) async {
-    String currentUserId =
+    String? currentUserId =
         Provider.of<UserData>(context, listen: false).currentUserId;
-    chatsRef.document(chat.id).updateData({
+    chatsRef.doc(chat.id).update({
       'readStatus.$currentUserId': read,
     });
   }

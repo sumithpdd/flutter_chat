@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_chat/models/chat_model.dart';
-import 'package:firebase_chat/models/message_model.dart';
-import 'package:firebase_chat/models/user_data.dart';
-import 'package:firebase_chat/utilities/constants.dart';
+import 'package:flutter_chat/models/chat_model.dart';
+import 'package:flutter_chat/models/message_model.dart';
+import 'package:flutter_chat/models/user_data.dart';
+import 'package:flutter_chat/utilities/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,7 +10,7 @@ class MessageBubble extends StatelessWidget {
   final Chat chat;
   final Message message;
 
-  const MessageBubble(this.chat, this.message);
+  const MessageBubble(this.chat, this.message, {Key? key}) : super(key: key);
 
   _buildText(bool isMe) {
     return Padding(
@@ -19,8 +19,8 @@ class MessageBubble extends StatelessWidget {
         horizontal: 12.0,
       ),
       child: Text(
-        message.text,
-        style: TextStyle(
+        message.text!,
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 15.0,
         ),
@@ -37,7 +37,7 @@ class MessageBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.0),
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: CachedNetworkImageProvider(message.imageUrl),
+          image: CachedNetworkImageProvider(message.imageUrl!),
         ),
       ),
     );
@@ -64,9 +64,9 @@ class MessageBubble extends StatelessWidget {
                     : const EdgeInsets.only(left: 12.0),
                 child: Text(
                   isMe
-                      ? '${timeFormat.format(message.timestamp.toDate())}'
-                      : '${chat.memberInfo[message.senderId]['name']} • ${timeFormat.format(message.timestamp.toDate())}',
-                  style: TextStyle(
+                      ? timeFormat.format(message.timestamp!.toDate())
+                      : '${chat.memberInfo[message.senderId]['name']} • ${timeFormat.format(message.timestamp!.toDate())}',
+                  style: const TextStyle(
                     fontSize: 12.0,
                     color: Colors.black54,
                   ),
@@ -79,9 +79,11 @@ class MessageBubble extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: message.imageUrl == null
-                      ? isMe ? Colors.lightBlue : Colors.green[400]
+                      ? isMe
+                          ? Colors.lightBlue
+                          : Colors.green[400]
                       : Colors.transparent,
-                  borderRadius: BorderRadius.all(
+                  borderRadius: const BorderRadius.all(
                     Radius.circular(20.0),
                   ),
                 ),

@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Message {
-  final String id;
-  final String senderId;
-  final String text;
-  final String imageUrl;
-  final Timestamp timestamp;
+  final String? id;
+  final String? senderId;
+  final String? text;
+  final String? imageUrl;
+  final Timestamp? timestamp;
 
   Message({
     this.id,
@@ -17,7 +17,7 @@ class Message {
 
   factory Message.fromDoc(DocumentSnapshot doc) {
     return Message(
-      id: doc.documentID,
+      id: doc.id,
       senderId: doc['senderId'],
       text: doc['text'],
       imageUrl: doc['imageUrl'],

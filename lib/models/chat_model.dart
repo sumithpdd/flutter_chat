@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Chat {
-  final String id;
-  final String name;
-  final String imageUrl;
-  final String recentMessage;
-  final String recentSender;
-  final Timestamp recentTimestamp;
-  final List<dynamic> memberIds;
+  final String? id;
+  final String? name;
+  final String? imageUrl;
+  final String? recentMessage;
+  final String? recentSender;
+  final Timestamp? recentTimestamp;
+  final List<dynamic>? memberIds;
   final dynamic memberInfo;
   final dynamic readStatus;
 
@@ -25,7 +25,7 @@ class Chat {
 
   factory Chat.fromDoc(DocumentSnapshot doc) {
     return Chat(
-      id: doc.documentID,
+      id: doc.id,
       name: doc['name'],
       imageUrl: doc['imageUrl'],
       recentMessage: doc['recentMessage'],
